@@ -5,6 +5,7 @@
   "repository": "trunk-studio/aws-uploader-lambda6",
   "main": "index.js",
   "dependencies": {
+    "aws-sdk": "^2.3.17",
     "lambda6": ">=2.0.0-alpha"
   },
   "devDependencies": {
@@ -21,7 +22,7 @@
     "chai": "^3.4.1",
     "del": "^2.2.0",
     "gulp": "^3.9.0",
-    "gulp-awslambda": "^0.3.0",
+    "gulp-awslambda": "^0.4.0",
     "gulp-babel": "^6.1.1",
     "gulp-esdoc": "^0.2.0",
     "gulp-eslint": "^1.1.1",
