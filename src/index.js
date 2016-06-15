@@ -7,5 +7,11 @@ import Handler from './handler';
  * @param {Object} context - the AWS Lambda context
  */
 export function handler(event, context) {
+  if (!event.operation) {
+    if (event.Records) {
+      event.operation = 's3event';
+      event.payload = { Records: event.Records };
+    }
+  }
   return new Handler().handle(event, context);
 }

@@ -1,11 +1,19 @@
 import { Handler, operation } from 'lambda6';
 
-/**
- * This is your lambda6 handler class that you should implement. Add operations
- * as methods within the class and be sure to add unit tests and to update this
- * documentation.
- */
+var aws = require('aws-sdk');
+
+var elastictranscoder = new aws.ElasticTranscoder();
+
+function basename(path) {
+   return path.split('/').reverse()[0].split('.')[0];
+}
+
+function outputKey(name, ext) {
+   return name + '-' + Date.now().toString() + '.' + ext;
+}
+
 export default class TestHandler extends Handler {
+
   /**
    * Sample operation handler for the "test" operation, it simply causes the
    * handler to succeed with the the operation name and payload it's given.
@@ -15,5 +23,37 @@ export default class TestHandler extends Handler {
   test(payload) {
     // No need to call `this.context.succeed()`, just return the value
     return { operationName: this.operation, value: payload };
+  }
+
+  @operation
+  s3event(payload) {
+
+    var key = payload.Records[0].s3.object.key;
+
+    var params = {
+      Input: { 
+        Key: key
+      },
+      PipelineId: '1462358425462-kxvzpj',
+      OutputKeyPrefix: 'transcoder/output/',
+      Outputs: [
+        {
+          Key: outputKey(basename(key), 'mp4'),
+          PresetId: '1465455318962-ontmlb',
+        }
+      ]
+    };
+/*
+    elastictranscoder.createJob(params, function(err, data) {
+      if (err){
+        console.log(err, err.stack);
+        context.fail();
+        return;
+      }
+      context.succeed();
+    });
+*/
+
+    return { params: params, payload: payload };
   }
 }

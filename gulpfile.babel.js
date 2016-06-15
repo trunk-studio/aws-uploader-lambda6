@@ -62,7 +62,8 @@ gulp.task('test', ['lint', '--pre-test-hook'], () => {
 });
 
 // Bundle Task
-gulp.task('bundle', ['lint', 'test', 'babel', 'npm'], () => {
+// hidden tasks => 'lint', 'test'
+gulp.task('bundle', ['babel', 'npm'], () => {
   return gulp.src(['./dist/**','!dist/package.json', 'dist/.*'])
     .pipe(zip('lambda.zip'))
     .pipe(gulp.dest('./'));
