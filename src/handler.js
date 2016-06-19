@@ -56,4 +56,8 @@ export default class TestHandler extends Handler {
 
     return { params: params, payload: payload };
   }
+
+  @operation nothing(payload) {
+    return { result: true };
+  }
 }

@@ -12,6 +12,10 @@ export function handler(event, context) {
       event.operation = 's3event';
       event.payload = { Records: event.Records };
     }
+    else {
+      event.operation = 'nothing';
+      event.payload = {};
+    }
   }
   return new Handler().handle(event, context);
 }
