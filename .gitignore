@@ -5,3 +5,4 @@ docs
 dist
 lambda.json
 lambda.zip
+config.js
