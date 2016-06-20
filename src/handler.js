@@ -27,37 +27,46 @@ export default class TestHandler extends Handler {
 
   @operation
   s3event(payload) {
+    //var key = payload.Records[0].s3.object.key;
+    return { result: true };
+  }
 
-    var key = payload.Records[0].s3.object.key;
+  @operation
+  nothing(payload) {
+    return { result: true };
+  }
+
+  @operation
+  echo(payload) {
+    return { payload: payload };
+  }
+
+  @operation
+  transcoder(payload) {
+
+    var key = payload.key;
 
     var params = {
       Input: { 
         Key: key
       },
       PipelineId: '1462358425462-kxvzpj',
-      OutputKeyPrefix: 'transcoder/output/',
+      OutputKeyPrefix: 'emvpcontent/',
       Outputs: [
         {
           Key: outputKey(basename(key), 'mp4'),
-          PresetId: '1465455318962-ontmlb',
+          PresetId: '1465455390986-0t1jc6',
         }
       ]
     };
-/*
+    
+    console.log('+++ Invoke elastictranscoder.createJob');
+
     elastictranscoder.createJob(params, function(err, data) {
+      console.log("+++ elastictranscoder.createJob callback");
       if (err){
-        console.log(err, err.stack);
-        context.fail();
-        return;
+        console.log(err);
       }
-      context.succeed();
     });
-*/
-
-    return { params: params, payload: payload };
-  }
-
-  @operation nothing(payload) {
-    return { result: true };
   }
 }
