@@ -7,7 +7,21 @@ export function handler(event, context) {
 
   console.log(event);
 
-  if (event.operation == 'transcoder') {
+  if (event.Records) {
+    // SNS or S3 Events
+    let record = event.Records[0];
+    
+    if (record.EventSource == 'aws:sns') {
+      // Transcoder Job Complete
+      let sns = record.Sns;
+      
+      console.log('<<< Transcoder Job Callback <<<' + JSON.stringify(sns));
+      //console.log(sns);
+      
+      
+    }
+  }
+  else if (event.operation == 'transcoder') {
 
     console.log('>>> Invoke: elastictranscoder.createJob');
 

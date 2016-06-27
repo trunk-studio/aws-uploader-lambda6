@@ -9,6 +9,7 @@
     "babel-polyfill": "^6.9.1",
     "babel-runtime": "^6.9.2",
     "bluebird": "^3.4.0",
+    "crypto-js": "^3.1.6",
     "lambda6": ">=2.0.0-alpha",
     "source-map-support": "^0.4.0"
   },

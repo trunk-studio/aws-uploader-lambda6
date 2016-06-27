@@ -19,3 +19,9 @@ Role ARN 的範例：
 ```
 arn:aws:iam::數字代碼:role/lambda_s3_exec_role
 ```
+
+AWS SNS 範例
+
+```
+{ Records:  [ { EventSource: 'aws:sns', EventVersion: '1.0', EventSubscriptionArn: 'arn:aws:sns:ap-northeast-1:802997416844:DefaultTranscoderPipelineEvents:d69ad940-15df-478e-8b86-668248cb765e', Sns: [Object] } ] }
+```
