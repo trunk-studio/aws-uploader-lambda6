@@ -63,7 +63,7 @@ async function _listS3Thumbnails(s3key_prefix, url_prefix) {
   if (thumbs.length > 3) {
     limitedThumbs.push(thumbs[0]);
     limitedThumbs.push(thumbs[Math.round(thumbs.length/2.0)]);
-    limitedThumbs.push(thumbs[thumbs.length]);
+    limitedThumbs.push(thumbs[thumbs.length - 1]);
   }
   else {
     limitedThumbs = thumbs;
@@ -77,8 +77,7 @@ export default class TestHandler extends Handler {
   @operation
   async echo(payload) {
     return {
-      payload: payload,
-      data: await _listS3Thumbnails('emvpcontent/r14057/v/8267c969-f1f4-4369-bef2-b3a03d6fe7c9/480/en/1762b59bf4_en', _cdnUrlGetHost('https://asdadasdad/sadasd/sadasd/dasd'))
+      payload: payload
     };
   }
   
@@ -180,6 +179,9 @@ export default class TestHandler extends Handler {
     
     let callbackEndpoint = userMetadata.CallbackEndpoint;
     
+    let cloudfrontBaseUrl = new Buffer(userMetadata.CloudFrontBaseURL, 'base64').toString('utf8');
+    let videoKeyPattern = new Buffer(userMetadata.VideoKeyPattern, 'base64').toString('utf8');
+    
     let callbackParams = JSON.parse(
       new Buffer(
         userMetadata.CallbackParams0 + userMetadata.CallbackParams1 +
@@ -187,6 +189,7 @@ export default class TestHandler extends Handler {
       ).toString('utf8')
     );
     
+    /*
     let videoUrl480 = callbackParams.videoUrl480;
     let videoUrl480_s3key = _cdnUrlToS3Key(videoUrl480);
     let videoSize480 = await _getS3ObjectContentLength(videoUrl480_s3key);
@@ -202,10 +205,25 @@ export default class TestHandler extends Handler {
       videoUrl720_s3key.substr(0, videoUrl720_s3key.lastIndexOf('.')),
       _cdnUrlGetHost(videoUrl720)
     );
+    */
 
     for (let i = 0; i < outputs.length; i++) {
+
       let output = outputs[i];
       
+      let resolutionKind = output.height;
+      
+      let videoKey = videoKeyPattern.replace('{resolutionKind}', resolutionKind);
+      
+      callbackParams.outputs.push({
+        resolutionKind: resolutionKind,
+        videoSize: await _getS3ObjectContentLength(videoKey),
+        thumbnail: await _listS3Thumbnails(
+          videoKey.substr(0, videoKey.lastIndexOf('.')), cloudfrontBaseUrl
+        )
+      });
+      
+      /*
       if (output.height == 480) {
         callbackParams.videoSize480 = videoSize480;
         callbackParams.thumbnail480 = thumbnail480;
@@ -214,6 +232,7 @@ export default class TestHandler extends Handler {
         callbackParams.videoSize720 = videoSize720;
         callbackParams.thumbnail720 = thumbnail720;
       }
+      */
       
       callbackParams.videoDuration = output.duration;
     }
@@ -221,7 +240,7 @@ export default class TestHandler extends Handler {
     let response = await fetch(callbackEndpoint, {
       method: 'POST',
       body: JSON.stringify(callbackParams),
-    	redirect: 'follow',
+    	/* redirect: 'follow', */
     	headers: {'Content-Type': 'application/json'}
     });
     
