@@ -36,40 +36,62 @@ function _cdnUrlGetHost(cdnUrl) {
 }
 
 async function _getS3ObjectContentLength(s3key) {
-  let result = await s3.headObject({Bucket: config.bucketName, Key: s3key}).promise();
-  return result.ContentLength;
+  try {
+    let result = await s3.headObject({Bucket: config.bucketName, Key: s3key}).promise();
+    return result.ContentLength;    
+  }
+  catch (e) {
+    console.log('+++ _getS3ObjectContentLength +++');
+    console.log('Debug: s3key=' + s3key);
+    console.log('Error: ' + e);
+    return 0;
+  }
 }
 
 async function _listS3Thumbnails(s3key_prefix, url_prefix) {
-  let result = await s3.listObjects({
-    Bucket: config.bucketName,
-    Prefix: s3key_prefix
-  }).promise();
-  
-  let objects = result.Contents;
-  
-  let thumbs = [];
-  
-  for (let i = 0; i < objects.length; i++) {
-    let obj = objects[i];
-    let suffix = obj.Key.substr(-4);
-    if (suffix == '.jpg' || suffix == '.png') {
-      thumbs.push(url_prefix?url_prefix+obj.Key:obj.Key);
+  try {
+    
+    let result = await s3.listObjects({
+      Bucket: config.bucketName,
+      Prefix: s3key_prefix
+    }).promise();
+    
+    let objects = result.Contents;
+    
+    let thumbs = [];
+    
+    for (let i = 0; i < objects.length; i++) {
+      let obj = objects[i];
+      let suffix = obj.Key.substr(-4);
+      if (suffix == '.jpg' || suffix == '.png') {
+        thumbs.push(url_prefix?url_prefix+obj.Key:obj.Key);
+      }
     }
+    
+    let limitedThumbs = [];
+    
+    if (thumbs.length > 3) {
+      limitedThumbs.push(thumbs[0]);
+      limitedThumbs.push(thumbs[Math.round(thumbs.length/2.0)]);
+      limitedThumbs.push(thumbs[thumbs.length - 1]);
+    }
+    else {
+      limitedThumbs = thumbs;
+    }
+    
+    return limitedThumbs.join(';');
   }
-  
-  let limitedThumbs = [];
-  
-  if (thumbs.length > 3) {
-    limitedThumbs.push(thumbs[0]);
-    limitedThumbs.push(thumbs[Math.round(thumbs.length/2.0)]);
-    limitedThumbs.push(thumbs[thumbs.length - 1]);
+  catch (e) {
+    console.log('+++ _listS3Thumbnails +++');
+    console.log('Debug: s3key_prefix=' + s3key_prefix);
+    console.log('Debug: url_prefix=' + url_prefix);
+    console.log('Error: ' + e);
+    return 0;
   }
-  else {
-    limitedThumbs = thumbs;
-  }
-  
-  return limitedThumbs.join(';');
+}
+
+function _getVideoUrl(s3key, url_prefix) {
+  return url_prefix + s3key;
 }
 
 export default class TestHandler extends Handler {
@@ -211,7 +233,8 @@ export default class TestHandler extends Handler {
 
       let output = outputs[i];
       
-      let resolutionKind = output.height;
+      // hint: key 最前面必須包含解析度值
+      let resolutionKind = output.key.split('/').shift();
       
       let videoKey = videoKeyPattern.replace('{resolutionKind}', resolutionKind);
       
@@ -220,7 +243,8 @@ export default class TestHandler extends Handler {
         videoSize: await _getS3ObjectContentLength(videoKey),
         thumbnail: await _listS3Thumbnails(
           videoKey.substr(0, videoKey.lastIndexOf('.')), cloudfrontBaseUrl
-        )
+        ),
+        videoUrl: _getVideoUrl(videoKey, cloudfrontBaseUrl)
       });
       
       /*
