@@ -71,7 +71,7 @@ async function _listS3Thumbnails(s3key_prefix, url_prefix) {
     let limitedThumbs = [];
     
     if (thumbs.length > 3) {
-      limitedThumbs.push(thumbs[0]);
+      limitedThumbs.push(thumbs[1]);
       limitedThumbs.push(thumbs[Math.round(thumbs.length/2.0)]);
       limitedThumbs.push(thumbs[thumbs.length - 1]);
     }
@@ -260,18 +260,43 @@ export default class TestHandler extends Handler {
       
       callbackParams.videoDuration = output.duration;
     }
+    
+    console.log('*** dump callbackParams ***');
+    console.log(JSON.stringify(callbackParams));
 
-    let response = await fetch(callbackEndpoint, {
-      method: 'POST',
-      body: JSON.stringify(callbackParams),
-    	/* redirect: 'follow', */
-    	headers: {'Content-Type': 'application/json'}
-    });
-    
-    let resultJson = await response.json();
-    
-    console.log('>>> Transcoder Job Callback >>>' + JSON.stringify(resultJson));
-    
-    return resultJson;
+    try {
+      let response = await fetch(callbackEndpoint, {
+        method: 'POST',
+        body: JSON.stringify(callbackParams),
+      	/* redirect: 'follow', */
+      	headers: {'Content-Type': 'application/json'}
+      });
+      
+      let resultText = await response.text();
+      //let resultJson = await response.json();
+      
+      console.log('*** dump resultText ***');
+      console.log(resultText);
+      
+      let resultJson = {};
+      
+      try {
+        resultJson = JSON.parse(resultText);
+      } catch (e) {
+        resultJson = {
+          error: e.message,
+          response: resultText
+        };
+        console.log("callback api server response not in JSON format.");
+      }
+      
+      console.log('>>> Transcoder Job Callback >>>' + JSON.stringify(resultJson));
+      
+      return resultJson;
+    }
+    catch (e) {
+      console.log('Error: ' + e.message );
+      return { error: e.message };
+    }
   }
 }

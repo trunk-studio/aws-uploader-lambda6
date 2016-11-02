@@ -75,7 +75,8 @@ gulp.task('lambda', ['bundle'], () => {
   const lambdaConfig = require('./lambda');
 
   const opts = {
-      region: 'ap-northeast-1'
+      //region: 'ap-northeast-1'
+      region: 'us-west-2'
   };
 
   return gulp.src('./lambda.zip')

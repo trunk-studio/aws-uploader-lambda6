@@ -4,5 +4,7 @@ coverage
 docs
 dist
 lambda.json
+lambda.json.*
 lambda.zip
 config.js
+config.js.*
